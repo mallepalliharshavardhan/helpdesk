@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resojet Helpdesk</title>
+    <link rel="manifest" href="data:application/json;charset=utf-8,{%22name%22:%22Resojet%20Helpdesk%22,%22short_name%22:%22Helpdesk%22,%22start_url%22:%22./%22,%22display%22:%22standalone%22,%22background_color%22:%22%23fcfcf9%22,%22theme_color%22:%22%23218090%22}">
+    <meta name="theme-color" content="#218090">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --teal-500: #0d9488;
+            --orange-500: #f97316;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--teal-500));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-content h2 {
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Login Screen */
+        .login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--background-color), #e0f2fe);
+        }
+
+        .login-content {
+            text-align: center;
+            max-width: 400px;
+            padding: 3rem;
+            background: var(--surface-color);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .login-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .login-content p {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .login-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Admin Login Form */
+        .admin-login-form {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .admin-login-form input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .admin-login-form input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Main App */
+        .main-app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .app-header {
+            background: var(--surface-color);
+            border-bottom: 2px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Storage Alert */
+        .storage-alert {
+            background: linear-gradient(45deg, var(--warning-color), var(--orange-500));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-align: center;
+            font-weight: 500;
+            animation: pulse 2s infinite;
+        }
+
+        .storage-alert.danger {
+            background: linear-gradient(45deg, var(--danger-color), #dc2626);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .nav-tabs-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .nav-tab:hover {
+            background: var(--background-color);
+            color: var(--primary-color);
+        }
+
+        .nav-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: var(--background-color);
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 2rem;
+        }
+
+        /* Notifications */
+        .notification-bar {
+            margin-bottom: 2rem;
+        }
+
+        .notification {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .notification.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .notification.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .notification.info {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+        }
+
+        .notification.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface-color);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-color);
+        }
+
+        .stat-card.warning::before {
+            background: var(--warning-color);
+        }
+
+        .stat-card.success::before {
+            background: var(--success-color);
+        }
+
+        .stat-card.danger::before {
+            background: var(--danger-color);
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-control:invalid {
+            border-color: var(--danger-color);
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            justify-content: center;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn--primary {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .btn--primary:hover:not(:disabled) {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .btn--secondary {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .btn--secondary:hover:not(:disabled) {
+            background: #475569;
+            border-color: #475569;
+        }
+
+        .btn--success {
+            background: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+
+        .btn--warning {
+            background: var(--warning-color);
+            color: white;
+            border-color: var(--warning-color);
+        }
+
+        .btn--danger {
+            background: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
+
+        .btn--outline {
+            background: transparent;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn--outline:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn--lg {
+            padding: 1.25rem 2rem;
+            font-size: 1.125rem;
+            border-radius: 12px;
+        }
+
+        .btn--sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--surface-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background: var(--background-color);
+            font-weight: 600;
+            color: var(--text-color);
+            position: sticky;
+            top: 0;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(37, 99, 235, 0.03);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge--success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .badge--warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .badge--danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .badge--primary {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+        }
+
+        /* Storage Meter */
+        .storage-meter {
+            background: var(--background-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .storage-meter-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .storage-meter-bar {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .storage-meter-fill {
+            height: 100%;
+            background: var(--success-color);
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .storage-meter-fill.warning {
+            background: var(--warning-color);
+        }
+
+        .storage-meter-fill.danger {
+            background: var(--danger-color);
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-tabs-content {
+                padding: 0 1rem;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+
+        /* Error Message */
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        /* Access denied message */
+        .access-denied {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface-color);
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <h2>Resojet Helpdesk</h2>
+            <div class="loading-spinner"></div>
+            <p>Initializing system...</p>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen hidden">
+        <div class="login-content">
+            <h1>🎯 Resojet Helpdesk</h1>
+            <p>Welcome! Please select your access level</p>
+            
+            <div class="login-options">
+                <button class="btn btn--primary btn--lg" onclick="selectRole('employee')">
+                    <span>👤</span>
+                    Employee Access
+                </button>
+                
+                <div class="admin-login-form">
+                    <p><strong>Administrator Login</strong></p>
+                    <input type="password" id="adminPassword" placeholder="Enter admin password" onkeyup="checkAdminLogin(event)">
+                    <button class="btn btn--secondary btn--lg" onclick="loginAdmin()">
+                        <span>🔧</span>
+                        Admin Login
+                    </button>
+                    <div id="loginError" class="error-message hidden">Incorrect password. Please try again.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="main-app hidden">
+        <!-- Storage Alert Banner -->
+        <div id="storageAlert" class="storage-alert hidden">
+            <span id="storageAlertText">Storage capacity warning</span>
+        </div>
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="app-title">🎯 Resojet Helpdesk</h1>
+                    <span id="currentRole" class="role-indicator"></span>
+                </div>
+                <div class="header-controls">
+                    <div class="storage-meter" id="storageDisplay">
+                        <div class="storage-meter-label">
+                            <span>Storage Usage</span>
+                            <span id="storagePercentage">0%</span>
+                        </div>
+                        <div class="storage-meter-bar">
+                            <div id="storageFill" class="storage-meter-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <button class="btn btn--outline" onclick="exportData()" id="exportBtn">
+                        📥 Export Data
+                    </button>
+                    <button class="btn btn--outline" onclick="logout()">
+                        🚪 Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <div class="nav-tabs-content">
+                <button class="nav-tab active" onclick="switchTab('dashboard')">
+                    📊 Dashboard
+                </button>
+                <button class="nav-tab" onclick="switchTab('submit')">
+                    ➕ Submit Ticket
+                </button>
+                <button class="nav-tab" onclick="switchTab('tickets')">
+                    🎫 My Tickets
+                </button>
+                <!-- Admin Only Tabs -->
+                <button id="analyticsTab" class="nav-tab hidden" onclick="switchTab('analytics')">
+                    📈 Analytics
+                </button>
+                <button id="assetsTab" class="nav-tab hidden" onclick="switchTab('assets')">
+                    💻 IT Assets
+                </button>
+                <button id="adminTab" class="nav-tab hidden" onclick="switchTab('admin')">
+                    ⚙️ Admin Panel
+                </button>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="content-area">
+            <!-- Notifications -->
+            <div id="notifications" class="notification-bar"></div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboardContent" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalTickets">0</div>
+                        <div class="stat-label">Total Tickets</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-value" id="openTickets">0</div>
+                        <div class="stat-label">Open Tickets</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-value" id="resolvedTickets">0</div>
+                        <div class="stat-label">Resolved Tickets</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-value" id="avgResolutionTime">0</div>
+                        <div class="stat-label">Avg Resolution (mins)</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Activity</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentActivity">
+                            <p class="text-muted">No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Ticket Tab -->
+            <div id="submitContent" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Submit New Support Ticket</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="ticketForm" onsubmit="submitTicket(event)">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Your Name *</label>
+                                    <input type="text" name="userName" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Department *</label>
+                                    <select name="department" class="form-control" required>
+                                        <option value="">Select Department</option>
+                                        <option value="Production">Production</option>
+                                        <option value="Quality Control">Quality Control</option>
+                                        <option value="Maintenance">Maintenance</option>
+                                        <option value="Engineering">Engineering</option>
+                                        <option value="IT Support">IT Support</option>
+                                        <option value="Administration">Administration</option>
+                                        <option value="Warehouse">Warehouse</option>
+                                        <option value="Safety">Safety</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Contact Email</label>
+                                    <input type="email" name="email" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Priority *</label>
+                                    <select name="priority" class="form-control" required>
+                                        <option value="">Select Priority</option>
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Critical">Critical</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Category *</label>
+                                <select name="category" class="form-control" required onchange="updateIssueTypes(this.value)">
+                                    <option value="">Select Category</option>
+                                    <option value="Hardware">Hardware</option>
+                                    <option value="Software">Software</option>
+                                    <option value="Network">Network</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Issue Type *</label>
+                                <select name="issueType" class="form-control" required id="issueTypeSelect">
+                                    <option value="">Select category first</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Description *</label>
+                                <textarea name="description" class="form-control" rows="4" required placeholder="Please describe the issue in detail..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Asset/Machine ID (if applicable)</label>
+                                <input type="text" name="assetId" class="form-control" placeholder="e.g., PROD-LINE-01">
+                            </div>
+
+                            <button type="submit" class="btn btn--primary">
+                                🎫 Submit Ticket
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Tickets Tab -->
+            <div id="ticketsContent" class="tab-content">
+                <div class="filters">
+                    <div class="filter-group">
+                        <label class="form-label">Status</label>
+                        <select id="statusFilter" class="form-control" onchange="filterTickets()">
+                            <option value="">All Status</option>
+                            <option value="Open">Open</option>
+                            <option value="In-Progress">In-Progress</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Category</label>
+                        <select id="categoryFilter" class="form-control" onchange="filterTickets()">
+                            <option value="">All Categories</option>
+                            <option value="Hardware">Hardware</option>
+                            <option value="Software">Software</option>
+                            <option value="Network">Network</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Search</label>
+                        <input type="text" id="searchFilter" class="form-control" placeholder="Search tickets..." oninput="filterTickets()">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Category</th>
+                                <th>Issue</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Est. Resolution</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Analytics Tab (Admin Only) -->
+            <div id="analyticsContent" class="tab-content">
+                <div id="adminOnlyMessage" class="access-denied">
+                    <h3>🔒 Admin Access Required</h3>
+                    <p>This section is only available to administrators. Please login with admin credentials.</p>
+                </div>
+            </div>
+
+            <!-- IT Assets Tab (Admin Only) -->
+            <div id="assetsContent" class="tab-content">
+                <div id="adminOnlyMessage2" class="access-denied">
+                    <h3>🔒 Admin Access Required</h3>
+                    <p>IT Asset Management is only available to administrators. Please login with admin credentials.</p>
+                </div>
+            </div>
+
+            <!-- Admin Panel Tab (Admin Only) -->
+            <div id="adminContent" class="tab-content">
+                <div id="adminOnlyMessage3" class="access-denied">
+                    <h3>🔒 Admin Access Required</h3>
+                    <p>Admin Panel is only available to administrators. Please login with admin credentials.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Ticket Detail Modal -->
+    <div id="ticketModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ticket Details</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let currentRole = '';
+        let currentTab = 'dashboard';
+        let tickets = [];
+        let storageInfo = { currentUsage: 0, maxCapacity: 100 };
+        let updateInterval = null;
+        let isAdmin = false;
+
+        // Admin password
+        const ADMIN_PASSWORD = 'itteam';
+
+        // Issue types by category
+        const issueTypes = {
+            Hardware: [
+                'Computer not powering on',
+                'Monitor blank/no display',
+                'Printer not working',
+                'Scanner malfunction',
+                'Keyboard/Mouse issues',
+                'Hard drive failure',
+                'Memory (RAM) issues',
+                'Overheating issues',
+                'Physical damage',
+                'Cable/Connection problems'
+            ],
+            Software: [
+                'Application not starting',
+                'Software crashes/freezes',
+                'License expiry/activation',
+                'Installation problems',
+                'Performance issues',
+                'Data corruption',
+                'Version compatibility',
+                'AutoCAD issues',
+                'Microsoft Office problems',
+                'Custom software bugs'
+            ],
+            Network: [
+                'No internet connection',
+                'Slow network speed',
+                'VPN connection issues',
+                'Email problems',
+                'File sharing issues',
+                'Network drive access',
+                'WiFi connectivity',
+                'Server unreachable',
+                'Port blocking',
+                'Network security issues'
+            ]
+        };
+
+        // Sample data
+        const sampleTickets = [
+            {
+                id: 'TKT-001',
+                user: 'John Smith',
+                department: 'Production',
+                category: 'Hardware',
+                issueType: 'Computer not powering on',
+                description: 'Production workstation won\'t start after power outage',
+                priority: 'High',
+                status: 'Open',
+                dateCreated: new Date('2025-10-04T08:30:00Z'),
+                estimatedResolution: 65,
+                email: 'john.smith@resojet.com',
+                assetId: 'PROD-LINE-01'
+            },
+            {
+                id: 'TKT-002',
+                user: 'Sarah Johnson',
+                department: 'Quality Control',
+                category: 'Software',
+                issueType: 'License expiry/activation',
+                description: 'AutoCAD license expired, unable to open CAD files',
+                priority: 'Medium',
+                status: 'In-Progress',
+                dateCreated: new Date('2025-10-04T09:15:00Z'),
+                estimatedResolution: 55,
+                email: 'sarah.johnson@resojet.com',
+                assetId: 'ENG-CAD-05'
+            },
+            {
+                id: 'TKT-003',
+                user: 'Mike Wilson',
+                department: 'Engineering',
+                category: 'Network',
+                issueType: 'Slow network speed',
+                description: 'Network very slow in engineering dept, affecting file transfers',
+                priority: 'Low',
+                status: 'Resolved',
+                dateCreated: new Date('2025-10-03T14:20:00Z'),
+                estimatedResolution: 40,
+                email: 'mike.wilson@resojet.com',
+                assetId: ''
+            }
+        ];
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show loading screen initially
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+            }, 2000);
+
+            // Load existing data
+            loadData();
+            
+            // Initialize storage monitoring
+            updateStorageInfo();
+        });
+
+        // Login Functions
+        function selectRole(role) {
+            if (role === 'employee') {
+                currentRole = 'employee';
+                isAdmin = false;
+                showMainApp();
+            }
+        }
+
+        function checkAdminLogin(event) {
+            if (event.key === 'Enter') {
+                loginAdmin();
+            }
+        }
+
+        function loginAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) {
+                currentRole = 'admin';
+                isAdmin = true;
+                showMainApp();
+                document.getElementById('loginError').classList.add('hidden');
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+                document.getElementById('adminPassword').value = '';
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Show/hide admin features
+            toggleAdminFeatures();
+            
+            // Update dashboard
+            updateDashboard();
+            renderTicketsTable();
+            
+            // Start real-time updates
+            startRealTimeUpdates();
+        }
+
+        function toggleAdminFeatures() {
+            const adminTabs = ['analyticsTab', 'assetsTab', 'adminTab'];
+            const adminElements = ['storageDisplay', 'exportBtn'];
+            
+            if (isAdmin) {
+                document.getElementById('currentRole').textContent = '(Administrator)';
+                adminTabs.forEach(tab => document.getElementById(tab).classList.remove('hidden'));
+                adminElements.forEach(el => document.getElementById(el).classList.remove('hidden'));
+                
+                // Show actual admin content instead of access denied messages
+                showAdminContent();
+            } else {
+                document.getElementById('currentRole').textContent = '(Employee)';
+                adminTabs.forEach(tab => document.getElementById(tab).classList.add('hidden'));
+                
+                // Hide admin elements for employees
+                document.getElementById('storageDisplay').classList.add('hidden');
+                document.getElementById('exportBtn').classList.add('hidden');
+            }
+        }
+
+        function showAdminContent() {
+            // Replace admin content with actual functionality
+            document.getElementById('analyticsContent').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalTicketsAnalytics">0</div>
+                        <div class="stat-label">Total Tickets</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-value" id="resolutionRate">0%</div>
+                        <div class="stat-label">Resolution Rate</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-value" id="avgResponseTime">0</div>
+                        <div class="stat-label">Avg Response (mins)</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Issue Categories Distribution</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="categoryChart"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Most Common Issues</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="commonIssues"></div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('assetsContent').innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3>IT Asset Management</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Asset management functionality available for administrators.</p>
+                        <p>Features: Track hardware, software licenses, warranties, and asset lifecycle.</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('adminContent').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">50</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-value" id="pendingTickets">0</div>
+                        <div class="stat-label">Pending Tickets</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-value">95</div>
+                        <div class="stat-label">Total Assets</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-value">2</div>
+                        <div class="stat-label">Expiring Soon</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>All Support Tickets</h3>
+                        <div>
+                            <button class="btn btn--success" onclick="bulkUpdateStatus('Resolved')">
+                                ✅ Mark Selected Resolved
+                            </button>
+                            <button class="btn btn--warning" onclick="exportAllTickets()">
+                                📤 Export All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" onchange="toggleAllTickets(this)"></th>
+                                        <th>ID</th>
+                                        <th>User</th>
+                                        <th>Department</th>
+                                        <th>Category</th>
+                                        <th>Issue</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminTicketsTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Update admin content
+            updateAnalytics();
+            renderAdminTicketsTable();
+        }
+
+        function logout() {
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('adminPassword').value = '';
+            currentRole = '';
+            isAdmin = false;
+            
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        }
+
+        function switchTab(tabName) {
+            // Check admin access
+            if (!isAdmin && ['analytics', 'assets', 'admin'].includes(tabName)) {
+                showNotification('Admin access required for this section', 'warning');
+                return;
+            }
+
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Content').classList.add('active');
+            
+            currentTab = tabName;
+            
+            // Update content based on tab
+            switch(tabName) {
+                case 'dashboard':
+                    updateDashboard();
+                    break;
+                case 'tickets':
+                    renderTicketsTable();
+                    break;
+                case 'analytics':
+                    if (isAdmin) updateAnalytics();
+                    break;
+                case 'admin':
+                    if (isAdmin) renderAdminTicketsTable();
+                    break;
+            }
+        }
+
+        function loadData() {
+            const savedTickets = localStorage.getItem('resojet_helpdesk_tickets');
+            if (savedTickets) {
+                tickets = JSON.parse(savedTickets).map(ticket => ({
+                    ...ticket,
+                    dateCreated: new Date(ticket.dateCreated)
+                }));
+            } else {
+                tickets = sampleTickets;
+                saveData();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('resojet_helpdesk_tickets', JSON.stringify(tickets));
+        }
+
+        function updateStorageInfo() {
+            const totalData = JSON.stringify(tickets).length;
+            const maxStorage = 5 * 1024 * 1024; // 5MB limit
+            
+            storageInfo.currentUsage = Math.min((totalData / maxStorage) * 100, 100);
+            
+            const percentage = Math.round(storageInfo.currentUsage);
+            const percentageEl = document.getElementById('storagePercentage');
+            const fillEl = document.getElementById('storageFill');
+            
+            if (percentageEl) percentageEl.textContent = percentage + '%';
+            if (fillEl) {
+                fillEl.style.width = percentage + '%';
+                fillEl.classList.remove('warning', 'danger');
+                
+                if (percentage >= 95) {
+                    fillEl.classList.add('danger');
+                    if (isAdmin) showStorageAlert('Storage critical! Export data immediately.', 'danger');
+                } else if (percentage >= 90) {
+                    fillEl.classList.add('danger');
+                    if (isAdmin) showStorageAlert('Storage almost full! Please export data.', 'danger');
+                } else if (percentage >= 80) {
+                    fillEl.classList.add('warning');
+                    if (isAdmin) showStorageAlert('Storage getting full. Consider exporting data.', 'warning');
+                } else {
+                    hideStorageAlert();
+                }
+            }
+        }
+
+        function showStorageAlert(message, type) {
+            const alert = document.getElementById('storageAlert');
+            const alertText = document.getElementById('storageAlertText');
+            
+            if (alert && alertText) {
+                alert.classList.remove('hidden', 'danger');
+                if (type === 'danger') {
+                    alert.classList.add('danger');
+                }
+                alertText.textContent = message;
+            }
+        }
+
+        function hideStorageAlert() {
+            const alert = document.getElementById('storageAlert');
+            if (alert) alert.classList.add('hidden');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notifications = document.getElementById('notifications');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const icon = type === 'warning' ? '⚠️' : type === 'danger' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            notification.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+            
+            notifications.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        function updateDashboard() {
+            const totalCount = tickets.length;
+            const openCount = tickets.filter(t => t.status === 'Open').length;
+            const resolvedCount = tickets.filter(t => t.status === 'Resolved').length;
+            
+            const resolvedTickets = tickets.filter(t => t.status === 'Resolved');
+            const avgResolution = resolvedTickets.length > 0 
+                ? Math.round(resolvedTickets.reduce((sum, t) => sum + t.estimatedResolution, 0) / resolvedTickets.length)
+                : 0;
+            
+            document.getElementById('totalTickets').textContent = totalCount;
+            document.getElementById('openTickets').textContent = openCount;
+            document.getElementById('resolvedTickets').textContent = resolvedCount;
+            document.getElementById('avgResolutionTime').textContent = avgResolution;
+            
+            const recentActivity = document.getElementById('recentActivity');
+            const recent = tickets.slice(-5).map(ticket => 
+                `<p><strong>${ticket.id}</strong> - ${ticket.user} reported "${ticket.issueType}" (${ticket.status})</p>`
+            ).join('');
+            
+            recentActivity.innerHTML = recent || '<p style="color: var(--text-muted);">No recent activity</p>';
+        }
+
+        function updateIssueTypes(category) {
+            const issueSelect = document.getElementById('issueTypeSelect');
+            issueSelect.innerHTML = '<option value="">Select issue type</option>';
+            
+            if (category && issueTypes[category]) {
+                issueTypes[category].forEach(issue => {
+                    const option = document.createElement('option');
+                    option.value = issue;
+                    option.textContent = issue;
+                    issueSelect.appendChild(option);
+                });
+            }
+        }
+
+        function submitTicket(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const ticketData = Object.fromEntries(formData.entries());
+            
+            const ticketCount = tickets.length + 1;
+            const ticketId = 'TKT-' + String(ticketCount).padStart(3, '0');
+            
+            const baseTimes = { 'Low': 20, 'Medium': 35, 'High': 45, 'Critical': 60 };
+            const baseTime = baseTimes[ticketData.priority] || 30;
+            const estimatedResolution = baseTime + 20; // +20 minute buffer
+            
+            const newTicket = {
+                id: ticketId,
+                user: ticketData.userName,
+                department: ticketData.department,
+                category: ticketData.category,
+                issueType: ticketData.issueType,
+                description: ticketData.description,
+                priority: ticketData.priority,
+                status: 'Open',
+                dateCreated: new Date(),
+                estimatedResolution: estimatedResolution,
+                email: ticketData.email || '',
+                assetId: ticketData.assetId || ''
+            };
+            
+            tickets.push(newTicket);
+            saveData();
+            updateStorageInfo();
+            
+            showNotification(`Ticket ${ticketId} submitted successfully! Estimated resolution: ${estimatedResolution} minutes`, 'success');
+            
+            event.target.reset();
+            updateDashboard();
+        }
+
+        function renderTicketsTable() {
+            const tbody = document.getElementById('ticketsTableBody');
+            const filteredTickets = filterTicketData();
+            
+            tbody.innerHTML = filteredTickets.map(ticket => `
+                <tr>
+                    <td><strong>${ticket.id}</strong></td>
+                    <td><span class="badge badge--${getBadgeClass(ticket.category)}">${ticket.category}</span></td>
+                    <td>${ticket.issueType}</td>
+                    <td><span class="badge badge--${getPriorityClass(ticket.priority)}">${ticket.priority}</span></td>
+                    <td><span class="badge badge--${getStatusClass(ticket.status)}">${ticket.status}</span></td>
+                    <td><strong>${ticket.estimatedResolution} mins</strong></td>
+                    <td>${ticket.dateCreated.toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn--sm btn--outline" onclick="viewTicket('${ticket.id}')">
+                            👁️ View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterTicketData() {
+            const statusFilter = document.getElementById('statusFilter')?.value || '';
+            const categoryFilter = document.getElementById('categoryFilter')?.value || '';
+            const searchFilter = document.getElementById('searchFilter')?.value.toLowerCase() || '';
+            
+            return tickets.filter(ticket => {
+                const matchesStatus = !statusFilter || ticket.status === statusFilter;
+                const matchesCategory = !categoryFilter || ticket.category === categoryFilter;
+                const matchesSearch = !searchFilter || 
+                    ticket.id.toLowerCase().includes(searchFilter) ||
+                    ticket.issueType.toLowerCase().includes(searchFilter) ||
+                    ticket.description.toLowerCase().includes(searchFilter);
+                
+                return matchesStatus && matchesCategory && matchesSearch;
+            });
+        }
+
+        function filterTickets() {
+            renderTicketsTable();
+        }
+
+        function getBadgeClass(category) {
+            const classes = { 'Hardware': 'danger', 'Software': 'warning', 'Network': 'primary' };
+            return classes[category] || 'primary';
+        }
+
+        function getPriorityClass(priority) {
+            const classes = { 'Low': 'success', 'Medium': 'warning', 'High': 'danger', 'Critical': 'danger' };
+            return classes[priority] || 'primary';
+        }
+
+        function getStatusClass(status) {
+            const classes = { 'Open': 'danger', 'In-Progress': 'warning', 'Resolved': 'success' };
+            return classes[status] || 'primary';
+        }
+
+        function viewTicket(ticketId) {
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (!ticket) return;
+            
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div class="form-group">
+                    <strong>Ticket ID:</strong> ${ticket.id}
+                </div>
+                <div class="form-group">
+                    <strong>User:</strong> ${ticket.user}
+                </div>
+                <div class="form-group">
+                    <strong>Department:</strong> ${ticket.department}
+                </div>
+                <div class="form-group">
+                    <strong>Category:</strong> ${ticket.category}
+                </div>
+                <div class="form-group">
+                    <strong>Issue:</strong> ${ticket.issueType}
+                </div>
+                <div class="form-group">
+                    <strong>Priority:</strong> ${ticket.priority}
+                </div>
+                <div class="form-group">
+                    <strong>Status:</strong> ${ticket.status}
+                </div>
+                <div class="form-group">
+                    <strong>Estimated Resolution:</strong> ${ticket.estimatedResolution} minutes
+                </div>
+                <div class="form-group">
+                    <strong>Description:</strong><br>
+                    ${ticket.description}
+                </div>
+                <div class="form-group">
+                    <strong>Created:</strong> ${ticket.dateCreated.toLocaleString()}
+                </div>
+                ${ticket.assetId ? `<div class="form-group"><strong>Asset ID:</strong> ${ticket.assetId}</div>` : ''}
+            `;
+            
+            document.getElementById('ticketModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('ticketModal').classList.remove('show');
+        }
+
+        // Admin Functions
+        function updateAnalytics() {
+            if (!isAdmin) return;
+            
+            const totalCount = tickets.length;
+            const resolvedCount = tickets.filter(t => t.status === 'Resolved').length;
+            const resolutionRate = totalCount > 0 ? Math.round((resolvedCount / totalCount) * 100) : 0;
+            
+            const resolvedTickets = tickets.filter(t => t.status === 'Resolved');
+            const avgResponse = resolvedTickets.length > 0
+                ? Math.round(resolvedTickets.reduce((sum, t) => sum + t.estimatedResolution, 0) / resolvedTickets.length)
+                : 0;
+            
+            const totalEl = document.getElementById('totalTicketsAnalytics');
+            const rateEl = document.getElementById('resolutionRate');
+            const responseEl = document.getElementById('avgResponseTime');
+            
+            if (totalEl) totalEl.textContent = totalCount;
+            if (rateEl) rateEl.textContent = resolutionRate + '%';
+            if (responseEl) responseEl.textContent = avgResponse;
+            
+            // Category chart
+            const categoryStats = {};
+            tickets.forEach(ticket => {
+                categoryStats[ticket.category] = (categoryStats[ticket.category] || 0) + 1;
+            });
+            
+            const categoryChart = document.getElementById('categoryChart');
+            if (categoryChart) {
+                categoryChart.innerHTML = Object.entries(categoryStats).map(([category, count]) => 
+                    `<div style="margin-bottom: 10px;">
+                        <strong>${category}:</strong> ${count} tickets (${Math.round((count/totalCount)*100)}%)
+                        <div style="background: #e5e5e5; height: 20px; border-radius: 10px; overflow: hidden;">
+                            <div style="background: var(--primary-color); height: 100%; width: ${(count/totalCount)*100}%; border-radius: 10px;"></div>
+                        </div>
+                    </div>`
+                ).join('');
+            }
+            
+            // Common issues
+            const issueStats = {};
+            tickets.forEach(ticket => {
+                issueStats[ticket.issueType] = (issueStats[ticket.issueType] || 0) + 1;
+            });
+            
+            const commonIssues = Object.entries(issueStats)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5);
+            
+            const commonIssuesEl = document.getElementById('commonIssues');
+            if (commonIssuesEl) {
+                commonIssuesEl.innerHTML = commonIssues.map(([issue, count]) =>
+                    `<p><strong>${issue}:</strong> ${count} tickets</p>`
+                ).join('');
+            }
+        }
+
+        function renderAdminTicketsTable() {
+            if (!isAdmin) return;
+            
+            const tbody = document.getElementById('adminTicketsTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = tickets.map(ticket => `
+                <tr>
+                    <td><input type="checkbox" class="ticket-checkbox" value="${ticket.id}"></td>
+                    <td><strong>${ticket.id}</strong></td>
+                    <td>${ticket.user}</td>
+                    <td>${ticket.department}</td>
+                    <td><span class="badge badge--${getBadgeClass(ticket.category)}">${ticket.category}</span></td>
+                    <td>${ticket.issueType}</td>
+                    <td><span class="badge badge--${getPriorityClass(ticket.priority)}">${ticket.priority}</span></td>
+                    <td><span class="badge badge--${getStatusClass(ticket.status)}">${ticket.status}</span></td>
+                    <td>${ticket.dateCreated.toLocaleDateString()}</td>
+                    <td>
+                        <select onchange="updateTicketStatus('${ticket.id}', this.value)" class="form-control" style="width: 120px;">
+                            <option value="Open" ${ticket.status === 'Open' ? 'selected' : ''}>Open</option>
+                            <option value="In-Progress" ${ticket.status === 'In-Progress' ? 'selected' : ''}>In-Progress</option>
+                            <option value="Resolved" ${ticket.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Update pending tickets count
+            const pendingCount = tickets.filter(t => t.status !== 'Resolved').length;
+            const pendingEl = document.getElementById('pendingTickets');
+            if (pendingEl) pendingEl.textContent = pendingCount;
+        }
+
+        function updateTicketStatus(ticketId, newStatus) {
+            if (!isAdmin) return;
+            
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (ticket) {
+                ticket.status = newStatus;
+                saveData();
+                showNotification(`Ticket ${ticketId} status updated to ${newStatus}`, 'success');
+                updateDashboard();
+                renderTicketsTable();
+                renderAdminTicketsTable();
+            }
+        }
+
+        function toggleAllTickets(checkbox) {
+            const checkboxes = document.querySelectorAll('.ticket-checkbox');
+            checkboxes.forEach(cb => cb.checked = checkbox.checked);
+        }
+
+        function bulkUpdateStatus(status) {
+            if (!isAdmin) return;
+            
+            const checkedBoxes = document.querySelectorAll('.ticket-checkbox:checked');
+            const ticketIds = Array.from(checkedBoxes).map(cb => cb.value);
+            
+            if (ticketIds.length === 0) {
+                showNotification('Please select tickets to update', 'warning');
+                return;
+            }
+            
+            ticketIds.forEach(ticketId => {
+                const ticket = tickets.find(t => t.id === ticketId);
+                if (ticket) {
+                    ticket.status = status;
+                }
+            });
+            
+            saveData();
+            showNotification(`${ticketIds.length} tickets updated to ${status}`, 'success');
+            updateDashboard();
+            renderTicketsTable();
+            renderAdminTicketsTable();
+        }
+
+        function exportData() {
+            if (!isAdmin) return;
+            
+            const csvContent = convertToCSV(tickets);
+            downloadFile(csvContent, 'resojet-helpdesk-export.csv', 'text/csv');
+            showNotification('Data exported successfully!', 'success');
+        }
+
+        function exportAllTickets() {
+            if (!isAdmin) return;
+            
+            const csvContent = convertToCSV(tickets);
+            downloadFile(csvContent, 'all-resojet-tickets.csv', 'text/csv');
+            showNotification('All tickets exported successfully!', 'success');
+        }
+
+        function convertToCSV(data) {
+            if (!data || data.length === 0) return '';
+            
+            const headers = Object.keys(data[0]).join(',');
+            const rows = data.map(item => 
+                Object.values(item).map(value => 
+                    typeof value === 'string' ? `"${value}"` : value
+                ).join(',')
+            );
+            
+            return [headers, ...rows].join('\n');
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function startRealTimeUpdates() {
+            updateInterval = setInterval(() => {
+                updateStorageInfo();
+                
+                // Simulate occasional status updates for demo
+                if (Math.random() < 0.1) {
+                    const openTickets = tickets.filter(t => t.status === 'Open');
+                    if (openTickets.length > 0 && Math.random() < 0.3) {
+                        const randomTicket = openTickets[Math.floor(Math.random() * openTickets.length)];
+                        randomTicket.status = 'In-Progress';
+                        saveData();
+                        
+                        if (currentTab === 'dashboard' || currentTab === 'tickets' || currentTab === 'admin') {
+                            updateDashboard();
+                            renderTicketsTable();
+                            if (isAdmin && currentTab === 'admin') {
+                                renderAdminTicketsTable();
+                            }
+                        }
+                        
+                        showNotification(`Ticket ${randomTicket.id} status updated to In-Progress`, 'info');
+                    }
+                }
+            }, 30000); // Update every 30 seconds
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html>
